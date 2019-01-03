@@ -5,12 +5,13 @@ EXPOSE	22
 
 #安装ssh
 RUN 	apt-get update \
-	&& apt-get install -y openssh-server curl git subversion ctags\
+	&& apt-get install -y openssh-server curl git subversion ctags locales net-tools \
 	&& apt-get install -y gcc g++ clang python python3 make build-essential cmake python3-dev python-dev \
 	&& apt-get install -y software-properties-common \
 	&& add-apt-repository ppa:jonathonf/vim -y && apt-get update &&  apt-get install -y vim \
 	&& apt-get autoremove \
 	&& mkdir -p /var/run/sshd \
+	&& sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config \
 	&& echo 'root:@^#EMA' |chpasswd 
 
 #系统时间
@@ -26,6 +27,10 @@ RUN	mkdir -p /root/.vim/bundle && cd /root/.vim/bundle && git clone https://gith
 	&& YCM_CORES=1 ./install.py --clang-completer \
 	&& rm -f /tmp/* \
 	&& vim -c 'PluginInstall' -c 'qa!'
+
+#安装bear
+RUN	git https://github.com/rizsotto/Bear.git &&cd Bear && mkdir -p build && cd build && cmake .. && make && make install && cd ../../ && rm -rf Bear &&rm -f /tmp/* \
+	&& echo "export LC_ALL=C.UTF-8" >> /etc/profile && echo "export LANG=C.UTF-8" >>/etc/profile
 
 #启动命令
 COPY	start.sh /bin/start.sh
